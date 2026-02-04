@@ -18,7 +18,6 @@
             --user-text: #ffffff;
         }
 
-        /* DARK MODE */
         [data-theme="dark"] {
             --chat-bg: #1e1e1e;
             --text-main: #e0e0e0;
@@ -30,29 +29,63 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            /* Placeholder background pattern */
             background-image: radial-gradient(#dee2e6 1px, transparent 1px);
             background-size: 20px 20px;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll when chat is open on mobile */
         }
 
         /* =========================================
-           CHAT WIDGET (Bottom Right)
+           LAUNCHER BUTTON (Floating Icon)
            ========================================= */
-        .chat-wrapper {
+        .chat-launcher {
             position: fixed;
             bottom: 30px;
             right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .chat-launcher:hover {
+            transform: scale(1.1);
+            background-color: #002171;
+        }
+
+        /* =========================================
+           CHAT WIDGET (Initially Hidden)
+           ========================================= */
+        .chat-wrapper {
+            position: fixed;
+            bottom: 100px; /* Above the launcher */
+            right: 30px;
             width: 380px;
             height: 600px;
+            max-height: 80vh; /* Don't be too tall on small screens */
             background-color: var(--chat-bg);
             border-radius: 20px;
             box-shadow: 0 5px 40px rgba(0,0,0,0.2);
-            display: flex;
+            display: none; /* HIDDEN BY DEFAULT */
             flex-direction: column;
             overflow: hidden;
-            z-index: 1000;
-            transition: all 0.3s ease;
+            z-index: 1999;
             border: 1px solid rgba(0,0,0,0.1);
+            animation: popUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes popUp {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         /* RESPONSIVE: Full screen on mobile */
@@ -62,12 +95,17 @@
                 right: 0;
                 width: 100%;
                 height: 100%;
+                max-height: 100vh;
                 border-radius: 0;
+            }
+            .chat-launcher {
+                bottom: 20px;
+                right: 20px;
             }
         }
 
         /* =========================================
-           HEADER
+           HEADER & CONTROLS
            ========================================= */
         .header {
             background-color: var(--primary);
@@ -87,17 +125,22 @@
             font-size: 1.1rem;
         }
 
-        .theme-toggle {
+        .header-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon-btn {
             background: none;
             border: none;
             color: white;
             cursor: pointer;
             font-size: 1.2rem;
-            padding: 5px;
-            border-radius: 50%;
+            padding: 0;
+            opacity: 0.8;
+            transition: opacity 0.2s;
         }
-
-        .theme-toggle:hover { background-color: rgba(255,255,255,0.2); }
+        .icon-btn:hover { opacity: 1; }
 
         /* =========================================
            CHAT AREA
@@ -147,7 +190,7 @@
         .message li { margin-bottom: 4px; }
 
         /* =========================================
-           CONTROLS
+           INPUT AREA
            ========================================= */
         .quick-actions {
             padding: 10px 15px;
@@ -210,11 +253,6 @@
             align-items: center;
         }
 
-        .send-btn:hover { transform: scale(1.05); }
-
-        /* =========================================
-           LOADER
-           ========================================= */
         .typing-indicator {
             display: none;
             padding: 10px 15px;
@@ -239,13 +277,20 @@
 </head>
 <body>
 
-<div class="chat-wrapper">
+<button class="chat-launcher" onclick="toggleChat()" id="launcherBtn">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+</button>
+
+<div class="chat-wrapper" id="chatWindow">
     <div class="header">
         <div class="header-title">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 0 6-1 9-1 3 0 6 0 9 1v-5"/></svg>
             AWH Assistant
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
+        <div class="header-controls">
+            <button class="icon-btn" onclick="toggleTheme()" title="Dark Mode">🌙</button>
+            <button class="icon-btn" onclick="toggleChat()" title="Close Chat">✕</button>
+        </div>
     </div>
 
     <div class="messages-area" id="chatBox">
@@ -280,39 +325,50 @@
 
 <script>
     // ===============================================
-    // YOUR API KEY IS PRE-CONFIGURED HERE
+    // YOUR API KEY
     // ===============================================
     const API_KEY = "AIzaSyDKbOtWve9E0G-fws_B-jg5N7I-C5u0CDI"; 
     // ===============================================
 
+    const chatWindow = document.getElementById('chatWindow');
+    const launcherBtn = document.getElementById('launcherBtn');
     const chatBox = document.getElementById('chatBox');
     const userInput = document.getElementById('userInput');
     const loader = document.getElementById('loader');
 
-    // 1. HARDCODED DATA
+    // 1. TOGGLE CHAT VISIBILITY
+    function toggleChat() {
+        if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
+            chatWindow.style.display = 'flex';
+            launcherBtn.style.transform = 'scale(0)'; // Shrink button
+            setTimeout(() => launcherBtn.style.display = 'none', 200);
+        } else {
+            chatWindow.style.display = 'none';
+            launcherBtn.style.display = 'flex';
+            setTimeout(() => launcherBtn.style.transform = 'scale(1)', 10);
+        }
+    }
+
+    // 2. HARDCODED DATA
     const collegeData = {
         name: "AWH Engineering College",
-        
         departments: `<strong>Our Departments:</strong><ul><li>Computer Science (CSE)</li><li>AI & Data Science (AI&DS)</li><li>Electronics (ECE)</li><li>Electrical (EEE)</li><li>Mechanical (ME)</li><li>Civil (CE)</li><li>MCA</li></ul>`,
-        
         courses: `<strong>Courses Offered:</strong><br>We offer B.Tech programs affiliated with KTU in all major engineering branches.<br><br><strong>Postgraduate:</strong><br>• MCA<br>• M.Tech in Structural Eng, CSE, and VLSI Design.`,
-        
         events: `<strong>🎉 Saaya (Cultural Fest):</strong><br>Our massive annual arts festival! It's a kaleidoscope of music, dance, and fine arts where students showcase their creative side.<br><br><strong>🤖 ATHMA (Technical Fest):</strong><br>The flagship tech fest! Features the 'ATHMATHON' hackathon, robotics wars, and coding challenges.`,
-        
         location: `<strong>Find Us Here:</strong><br>📍 Kuttikkattoor, Kozhikode, Kerala - 673008.<br>(We are about 12km from the main Kozhikode city).`,
-
         contact: `📞 0495-2352552<br>📧 info@awhengg.org`
     };
 
-    // 2. THEME LOGIC
+    // 3. THEME LOGIC
     let isDark = false;
     function toggleTheme() {
         isDark = !isDark;
         document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        const themeBtn = document.querySelector('.icon-btn[title="Dark Mode"]');
+        themeBtn.textContent = isDark ? '☀️' : '🌙';
     }
 
-    // 3. CHAT LOGIC
+    // 4. CHAT LOGIC
     function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
     function sendQuick(text) { userInput.value = text; sendMessage(); }
 
@@ -323,7 +379,6 @@
         addMessage(text, 'user');
         userInput.value = '';
 
-        // Check Hardcoded First
         const lower = text.toLowerCase();
         let reply = null;
 
@@ -333,7 +388,7 @@
         else if (lower.includes('location') || lower.includes('where')) reply = collegeData.location;
         else if (lower.includes('contact') || lower.includes('phone') || lower.includes('email')) reply = collegeData.contact;
         
-        // --- MANUALLY HANDLE GREETINGS (Failsafe for Demo) ---
+        // SAFE GREETINGS (Offline supported)
         else if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
             reply = "Hello! 👋 Welcome to AWH Engineering College. How can I assist you today?";
         }
@@ -343,13 +398,11 @@
         else if (lower.includes('bye')) {
             reply = "Goodbye! Have a great day! 👋";
         }
-        // -----------------------------------------------------
 
         if (reply) {
             showLoader(true);
             setTimeout(() => { showLoader(false); addMessage(reply, 'bot'); }, 600);
         } else {
-            // Use API for unique questions
             showLoader(true);
             try {
                 const aiReply = await fetchGemini(text);
@@ -357,8 +410,12 @@
                 addMessage(parseMarkdown(aiReply), 'bot');
             } catch (err) {
                 showLoader(false);
-                console.error("API Error:", err);
-                addMessage("⚠️ Network error. Please check your internet connection.", 'bot');
+                // OFFLINE FALLBACK
+                if (lower.includes('joke')) {
+                    addMessage("Why did the developer go broke? Because he used up all his cache! 😂", 'bot');
+                } else {
+                    addMessage("I'm currently in 'Offline Mode' due to network restrictions. <br>Please ask me about <strong>Courses</strong>, <strong>Events</strong>, or <strong>Location</strong>!", 'bot');
+                }
             }
         }
     }
@@ -383,7 +440,6 @@
     }
 
     async function fetchGemini(prompt) {
-        // Using 'gemini-1.5-flash' for speed and reliability
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
         const payload = {
             contents: [{ parts: [{ text: `You are a helpful student volunteer at AWH Engineering College. User: "${prompt}". Keep answers polite, short (max 2 sentences), and use emojis.` }] }]
@@ -396,7 +452,6 @@
         });
         
         if (!res.ok) throw new Error("API Error");
-
         const data = await res.json();
         return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I didn't understand.";
     }
