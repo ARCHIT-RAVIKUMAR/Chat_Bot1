@@ -30,6 +30,7 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
+            /* Placeholder background pattern */
             background-image: radial-gradient(#dee2e6 1px, transparent 1px);
             background-size: 20px 20px;
         }
@@ -279,7 +280,7 @@
 
 <script>
     // ===============================================
-    // YOUR API KEY IS CONFIGURED BELOW
+    // YOUR API KEY IS PRE-CONFIGURED HERE
     // ===============================================
     const API_KEY = "AIzaSyDKbOtWve9E0G-fws_B-jg5N7I-C5u0CDI"; 
     // ===============================================
@@ -331,14 +332,24 @@
         else if (lower.includes('event') || lower.includes('saaya') || lower.includes('athma')) reply = collegeData.events;
         else if (lower.includes('location') || lower.includes('where')) reply = collegeData.location;
         else if (lower.includes('contact') || lower.includes('phone') || lower.includes('email')) reply = collegeData.contact;
-        // MANUAL HELLO OVERRIDE (Failsafe)
-        else if (lower === 'hello' || lower === 'hi') reply = "Hello! 👋 How can I help you with AWH College today?";
+        
+        // --- MANUALLY HANDLE GREETINGS (Failsafe for Demo) ---
+        else if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
+            reply = "Hello! 👋 Welcome to AWH Engineering College. How can I assist you today?";
+        }
+        else if (lower.includes('thank')) {
+            reply = "You're welcome! 😊 Let me know if you need anything else.";
+        }
+        else if (lower.includes('bye')) {
+            reply = "Goodbye! Have a great day! 👋";
+        }
+        // -----------------------------------------------------
 
         if (reply) {
             showLoader(true);
             setTimeout(() => { showLoader(false); addMessage(reply, 'bot'); }, 600);
         } else {
-            // Use API
+            // Use API for unique questions
             showLoader(true);
             try {
                 const aiReply = await fetchGemini(text);
@@ -346,8 +357,8 @@
                 addMessage(parseMarkdown(aiReply), 'bot');
             } catch (err) {
                 showLoader(false);
-                addMessage("⚠️ I'm having trouble connecting. Please check your Internet connection.", 'bot');
-                console.error(err);
+                console.error("API Error:", err);
+                addMessage("⚠️ Network error. Please check your internet connection.", 'bot');
             }
         }
     }
@@ -372,9 +383,10 @@
     }
 
     async function fetchGemini(prompt) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+        // Using 'gemini-1.5-flash' for speed and reliability
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
         const payload = {
-            contents: [{ parts: [{ text: `You are a helpful student volunteer at AWH Engineering College. User: "${prompt}". Keep answers polite, short, and use emojis.` }] }]
+            contents: [{ parts: [{ text: `You are a helpful student volunteer at AWH Engineering College. User: "${prompt}". Keep answers polite, short (max 2 sentences), and use emojis.` }] }]
         };
 
         const res = await fetch(url, {
