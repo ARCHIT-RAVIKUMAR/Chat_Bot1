@@ -166,7 +166,7 @@
     <div class="quick-actions">
         <button class="pill" onclick="sendQuick('Departments')">Departments</button>
         <button class="pill" onclick="sendQuick('Events')">Events</button>
-        <button class="pill" onclick="sendQuick('Location')">Location</button>
+        <button class="pill" onclick="sendQuick('Placements')">Placements</button>
         <button class="pill" onclick="sendQuick('Gallery')">📸 Gallery</button>
     </div>
 
@@ -193,23 +193,22 @@
     const userInput = document.getElementById('userInput');
     const loader = document.getElementById('loader');
 
-    // --- IDLE TIMER LOGIC (NEW!) ---
+    // --- IDLE TIMER LOGIC ---
     let idleTimer;
     function resetIdleTimer() {
-        // Only run if chat is open
         if (chatWindow.style.display === 'none') return;
         
         clearTimeout(idleTimer);
-        // Set timer for 10 seconds (10000ms)
+        // Set timer for 10 seconds
         idleTimer = setTimeout(() => {
             const suggestions = [
                 "Would you like to see our **Placements**? 💼",
-                "Curious about the **Events** happening soon? 🎉",
+                "Curious about **Admissions**? 🎓",
                 "Need our **Contact Info**? 📞",
                 "Want to see some **Photos**? 📸"
             ];
             const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-            addMessage(`<i>(Bot)</i> Hey! ` + randomSuggestion, 'bot');
+            addMessage(parseMarkdown(`<i>(Bot)</i> Hey! ` + randomSuggestion), 'bot');
         }, 10000); 
     }
 
@@ -220,12 +219,12 @@
             launcherBtn.style.transform = 'scale(0)';
             setTimeout(() => launcherBtn.style.display = 'none', 200);
             setTimeout(() => userInput.focus(), 300);
-            resetIdleTimer(); // Start timer when opened
+            resetIdleTimer(); 
         } else {
             chatWindow.style.display = 'none';
             launcherBtn.style.display = 'flex';
             setTimeout(() => launcherBtn.style.transform = 'scale(1)', 10);
-            clearTimeout(idleTimer); // Stop timer when closed
+            clearTimeout(idleTimer); 
         }
     }
 
@@ -235,20 +234,23 @@
         departments: `<strong>Our Departments:</strong><ul><li>Computer Science (CSE)</li><li>AI & Data Science (AI&DS)</li><li>Electronics (ECE)</li><li>Electrical (EEE)</li><li>Mechanical (ME)</li><li>Civil (CE)</li><li>MCA</li></ul>`,
         courses: `<strong>Academic Programs:</strong><br>• B.Tech (KTU Affiliated)<br>• M.Tech (Structural, CSE, VLSI)<br>• MCA`,
         
-        // EVENTS: Text only + Dates
+        // EVENTS
         events: `<strong>🎉 Saaya Cultural Fest:</strong><br>📅 February 5 & 6<br>A celebration of arts & music!<br><br><strong>🤖 ATHMA Technical Fest:</strong><br>📅 February 7<br>The flagship tech fest with hackathons & robotics.`,
         
         // LOCATION
         location: `<strong>Find Us Here:</strong><br>📍 Kuttikkattoor, Kozhikode, Kerala.<br><a href="https://www.google.com/maps/search/?api=1&query=AWH+Engineering+College" target="_blank">View on Google Maps 🗺️</a>`,
         
-        // CONTACT (Included per request)
+        // CONTACT
         contact: `<strong>Contact Us:</strong><br>📞 <a href="tel:04952352552">0495-2352552</a><br>📧 <a href="mailto:info@awhengg.org">info@awhengg.org</a>`,
         
-        admissions: `<strong>Admissions:</strong><br>We offer B.Tech admission based on KEAM rank and Management Quota. <br>Please visit the college office for seat availability.`,
+        // ADMISSIONS & FEES
+        admissions: `<strong>Admissions:</strong><br>We offer B.Tech admission based on KEAM rank and Management Quota. <br>Please visit the college office for seat availability and fee structure.`,
         
+        // PLACEMENTS
         placements: `<strong>Placements:</strong><br>Our Placement Cell is very active! Top recruiters include Infosys, TCS, and UST Global.`,
         
-        facilities: `<strong>Campus Facilities:</strong><br>• 🚍 Bus Service<br>• 🏠 Hostels<br>• 📚 Library<br>• 📶 Wi-Fi`,
+        // FACILITIES
+        facilities: `<strong>Campus Facilities:</strong><br>• 🚍 College Bus Service (All routes)<br>• 🏠 Hostels (Boys & Girls)<br>• 📚 Central Library<br>• 📶 Wi-Fi Campus`,
         
         principal: `Our Principal leads the academic vision of AWH Engineering College with a focus on excellence and innovation.`
     };
@@ -276,12 +278,12 @@
 
         addMessage(text, 'user');
         userInput.value = '';
-        resetIdleTimer(); // Reset timer on user action
+        resetIdleTimer(); 
 
         const lower = text.toLowerCase();
         let reply = null;
 
-        // --- COLLEGE INFO ---
+        // --- COLLEGE INFO (HARDCODED) ---
         if (lower.includes('department') || lower.includes('branch')) reply = collegeData.departments;
         else if (lower.includes('course') || lower.includes('b.tech') || lower.includes('m.tech')) reply = collegeData.courses;
         else if (lower.includes('event') || lower.includes('saaya') || lower.includes('athma')) reply = collegeData.events;
@@ -292,7 +294,7 @@
         else if (lower.includes('hostel') || lower.includes('bus') || lower.includes('facility') || lower.includes('library')) reply = collegeData.facilities;
         else if (lower.includes('principal')) reply = collegeData.principal;
 
-        // --- GALLERY / SLIDESHOW LOGIC ---
+        // --- GALLERY ---
         else if (lower.includes('photo') || lower.includes('image') || lower.includes('pic') || lower.includes('gallery')) {
             reply = `
                 <strong>Campus Gallery 📸</strong><br>(Scroll to see more)<br>
@@ -306,13 +308,16 @@
             `;
         }
 
-        // --- GREETINGS ---
+        // --- ROBUST GREETINGS (With/Without Space Support) ---
         else if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) reply = "Hello! 👋 How can I assist you today?";
         else if (lower.includes('how are you') || lower.includes('how r u')) reply = "I'm doing great, thanks for asking! 🤖";
-        else if (lower.includes('good morning')) reply = "Good morning! ☀️";
-        else if (lower.includes('thank')) reply = "You're welcome! 😊";
+        else if (lower.includes('good morning') || lower.includes('goodmorning')) reply = "Good morning! ☀️";
+        else if (lower.includes('good afternoon') || lower.includes('goodafternoon')) reply = "Good afternoon! 🌤️";
+        else if (lower.includes('good evening') || lower.includes('goodevening')) reply = "Good evening! 🌆";
+        else if (lower.includes('good night') || lower.includes('goodnight') || lower.includes('gn')) reply = "Good night! 🌙 Sleep well.";
+        else if (lower.includes('thank') || lower.includes('thx')) reply = "You're welcome! 😊";
         else if (lower.includes('bye')) reply = "Goodbye! Have a nice day! 👋";
-        else if (lower.includes('help') || lower.includes('menu')) reply = "Try asking about: <strong>Courses, Events, Contact</strong>, or tap <strong>📸 Gallery</strong>!";
+        else if (lower.includes('help') || lower.includes('menu')) reply = "Try asking about: <strong>Courses, Events, Hostels</strong>, or tap <strong>📸 Gallery</strong>!";
 
         if (reply) {
             showLoader(true);
