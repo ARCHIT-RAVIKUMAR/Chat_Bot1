@@ -193,8 +193,10 @@
     const userInput = document.getElementById('userInput');
     const loader = document.getElementById('loader');
 
-    // --- IDLE TIMER LOGIC (BUG FIXED) ---
+    // --- INTERACTIVE IDLE LOGIC ---
     let idleTimer;
+    let suggestionContext = null; // Memory for what the bot asked
+
     function resetIdleTimer() {
         if (chatWindow.style.display === 'none') return;
         
@@ -202,14 +204,19 @@
         // Set timer for 10 seconds
         idleTimer = setTimeout(() => {
             const suggestions = [
-                "Would you like to see our **Placements**? 💼",
-                "Curious about **Admissions**? 🎓",
-                "Need our **Contact Info**? 📞",
-                "Want to see some **Photos**? 📸"
+                { text: "Would you like to see our **Placements**? 💼", key: "placements" },
+                { text: "Curious about **Admissions**? 🎓", key: "admissions" },
+                { text: "Need our **Contact Info**? 📞", key: "contact" },
+                { text: "Want to see some **Photos**? 📸", key: "gallery" }
             ];
-            const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-            // FIX: Added parseMarkdown() here so asterisks become bold text
-            addMessage(parseMarkdown(`<i>(Bot)</i> Hey! ` + randomSuggestion), 'bot');
+            
+            // Pick a random topic
+            const selected = suggestions[Math.floor(Math.random() * suggestions.length)];
+            
+            // Remember the topic!
+            suggestionContext = selected.key;
+            
+            addMessage(parseMarkdown(`<i>(Bot)</i> Hey! ` + selected.text), 'bot');
         }, 10000); 
     }
 
@@ -226,6 +233,7 @@
             launcherBtn.style.display = 'flex';
             setTimeout(() => launcherBtn.style.transform = 'scale(1)', 10);
             clearTimeout(idleTimer); 
+            suggestionContext = null; // Reset memory on close
         }
     }
 
@@ -244,11 +252,11 @@
         // CONTACT
         contact: `<strong>Contact Us:</strong><br>📞 <a href="tel:04952352552">0495-2352552</a><br>📧 <a href="mailto:info@awhengg.org">info@awhengg.org</a>`,
         
-        admissions: `<strong>Admissions:</strong><br>We offer B.Tech admission based on KEAM rank and Management Quota. <br>Please visit the college office for seat availability.`,
+        admissions: `<strong>Admissions:</strong><br>We offer B.Tech admission based on KEAM rank and Management Quota. <br>Please visit the college office for seat availability and fee structure.`,
         
         placements: `<strong>Placements:</strong><br>Our Placement Cell is very active! Top recruiters include Infosys, TCS, and UST Global.`,
         
-        facilities: `<strong>Campus Facilities:</strong><br>• 🚍 College Bus Service<br>• 🏠 Hostels<br>• 📚 Library<br>• 📶 Wi-Fi`,
+        facilities: `<strong>Campus Facilities:</strong><br>• 🚍 College Bus Service (All routes)<br>• 🏠 Hostels (Boys & Girls)<br>• 📚 Central Library<br>• 📶 Wi-Fi Campus`,
         
         principal: `Our Principal leads the academic vision of AWH Engineering College with a focus on excellence and innovation.`
     };
@@ -276,46 +284,59 @@
 
         addMessage(text, 'user');
         userInput.value = '';
-        resetIdleTimer(); // Reset timer
+        resetIdleTimer(); 
 
         const lower = text.toLowerCase();
         let reply = null;
 
-        // --- COLLEGE INFO (HARDCODED) ---
-        if (lower.includes('department') || lower.includes('branch')) reply = collegeData.departments;
-        else if (lower.includes('course') || lower.includes('b.tech') || lower.includes('m.tech')) reply = collegeData.courses;
-        else if (lower.includes('event') || lower.includes('saaya') || lower.includes('athma')) reply = collegeData.events;
-        else if (lower.includes('location') || lower.includes('where') || lower.includes('address')) reply = collegeData.location;
-        else if (lower.includes('contact') || lower.includes('phone') || lower.includes('email')) reply = collegeData.contact;
-        else if (lower.includes('admission') || lower.includes('fee') || lower.includes('seat') || lower.includes('join')) reply = collegeData.admissions;
-        else if (lower.includes('placement') || lower.includes('job') || lower.includes('recruit')) reply = collegeData.placements;
-        else if (lower.includes('hostel') || lower.includes('bus') || lower.includes('facility') || lower.includes('library')) reply = collegeData.facilities;
-        else if (lower.includes('principal')) reply = collegeData.principal;
-
-        // --- GALLERY ---
-        else if (lower.includes('photo') || lower.includes('image') || lower.includes('pic') || lower.includes('gallery')) {
-            reply = `
-                <strong>Campus Gallery 📸</strong><br>(Scroll to see more)<br>
-                <div class="carousel">
-                    <img src="clg1.jpeg" onclick="window.open(this.src)" alt="College 1">
-                    <img src="clg2.jpeg" onclick="window.open(this.src)" alt="College 2">
-                    <img src="clg3.jpeg" onclick="window.open(this.src)" alt="College 3">
-                    <img src="clg4.jpeg" onclick="window.open(this.src)" alt="College 4">
-                    <img src="clg5.jpeg" onclick="window.open(this.src)" alt="College 5">
-                </div>
-            `;
+        // --- CONTEXT AWARENESS (DID YOU SAY YES?) ---
+        if (suggestionContext && (lower === 'yes' || lower === 'y' || lower === 'sure' || lower === 'yeah' || lower === 'ok')) {
+            // Check what the bot was thinking about
+            if (suggestionContext === 'gallery') {
+                reply = getGalleryHTML();
+            } else if (collegeData[suggestionContext]) {
+                reply = collegeData[suggestionContext];
+            }
+            suggestionContext = null; // Clear memory after answering
+        } 
+        
+        // --- CONTEXT AWARENESS (DID YOU SAY NO?) ---
+        else if (suggestionContext && (lower === 'no' || lower === 'n' || lower === 'nope')) {
+            reply = "Okay! Let me know if you need anything else. 😊";
+            suggestionContext = null; // Clear memory
         }
 
-        // --- ROBUST GREETINGS (With/Without Space Support) ---
-        else if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) reply = "Hello! 👋 How can I assist you today?";
-        else if (lower.includes('how are you') || lower.includes('how r u')) reply = "I'm doing great, thanks for asking! 🤖";
-        else if (lower.includes('good morning') || lower.includes('goodmorning')) reply = "Good morning! ☀️";
-        else if (lower.includes('good afternoon') || lower.includes('goodafternoon')) reply = "Good afternoon! 🌤️";
-        else if (lower.includes('good evening') || lower.includes('goodevening')) reply = "Good evening! 🌆";
-        else if (lower.includes('good night') || lower.includes('goodnight') || lower.includes('gn')) reply = "Good night! 🌙 Sleep well.";
-        else if (lower.includes('thank') || lower.includes('thx')) reply = "You're welcome! 😊";
-        else if (lower.includes('bye')) reply = "Goodbye! Have a nice day! 👋";
-        else if (lower.includes('help') || lower.includes('menu')) reply = "Try asking about: <strong>Courses, Events, Hostels</strong>, or tap <strong>📸 Gallery</strong>!";
+        // --- STANDARD LOGIC (If no context or user ignored question) ---
+        else {
+            // If user ignored the question, clear memory so it doesn't get stuck
+            suggestionContext = null;
+
+            if (lower.includes('department') || lower.includes('branch')) reply = collegeData.departments;
+            else if (lower.includes('course') || lower.includes('b.tech') || lower.includes('m.tech')) reply = collegeData.courses;
+            else if (lower.includes('event') || lower.includes('saaya') || lower.includes('athma')) reply = collegeData.events;
+            else if (lower.includes('location') || lower.includes('where') || lower.includes('address')) reply = collegeData.location;
+            else if (lower.includes('contact') || lower.includes('phone') || lower.includes('email')) reply = collegeData.contact;
+            else if (lower.includes('admission') || lower.includes('fee') || lower.includes('seat') || lower.includes('join')) reply = collegeData.admissions;
+            else if (lower.includes('placement') || lower.includes('job') || lower.includes('recruit')) reply = collegeData.placements;
+            else if (lower.includes('hostel') || lower.includes('bus') || lower.includes('facility') || lower.includes('library') || lower.includes('transport')) reply = collegeData.facilities;
+            else if (lower.includes('principal')) reply = collegeData.principal;
+
+            // Gallery Trigger
+            else if (lower.includes('photo') || lower.includes('image') || lower.includes('pic') || lower.includes('gallery')) {
+                reply = getGalleryHTML();
+            }
+
+            // Greetings
+            else if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) reply = "Hello! 👋 How can I assist you today?";
+            else if (lower.includes('how are you') || lower.includes('how r u')) reply = "I'm doing great, thanks for asking! 🤖";
+            else if (lower.includes('good morning') || lower.includes('goodmorning')) reply = "Good morning! ☀️";
+            else if (lower.includes('good afternoon') || lower.includes('goodafternoon')) reply = "Good afternoon! 🌤️";
+            else if (lower.includes('good evening') || lower.includes('goodevening')) reply = "Good evening! 🌆";
+            else if (lower.includes('good night') || lower.includes('goodnight') || lower.includes('gn')) reply = "Good night! 🌙 Sleep well.";
+            else if (lower.includes('thank') || lower.includes('thx')) reply = "You're welcome! 😊";
+            else if (lower.includes('bye')) reply = "Goodbye! Have a nice day! 👋";
+            else if (lower.includes('help') || lower.includes('menu')) reply = "Try asking about: <strong>Courses, Events, Hostels</strong>, or tap <strong>📸 Gallery</strong>!";
+        }
 
         if (reply) {
             showLoader(true);
@@ -336,6 +357,20 @@
                 }
             }
         }
+    }
+
+    // Helper to generate Gallery HTML
+    function getGalleryHTML() {
+        return `
+            <strong>Campus Gallery 📸</strong><br>(Scroll to see more)<br>
+            <div class="carousel">
+                <img src="clg1.jpeg" onclick="window.open(this.src)" alt="College 1">
+                <img src="clg2.jpeg" onclick="window.open(this.src)" alt="College 2">
+                <img src="clg3.jpeg" onclick="window.open(this.src)" alt="College 3">
+                <img src="clg4.jpeg" onclick="window.open(this.src)" alt="College 4">
+                <img src="clg5.jpeg" onclick="window.open(this.src)" alt="College 5">
+            </div>
+        `;
     }
 
     function addMessage(html, type) {
