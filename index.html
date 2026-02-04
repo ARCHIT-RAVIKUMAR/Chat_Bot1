@@ -10,62 +10,57 @@
            ========================================= */
         :root {
             --primary: #0d47a1;       /* AWH Blue */
-            --primary-dark: #002171;
-            --bg-color: #f0f2f5;
+            --bg-color: #f4f7f6;      /* Webpage Background */
             --chat-bg: #ffffff;
             --text-main: #333333;
-            --text-sub: #666666;
             --bot-bubble: #e3f2fd;
             --user-bubble: #0d47a1;
             --user-text: #ffffff;
-            --shadow: rgba(0,0,0,0.1);
         }
 
-        /* DARK MODE VARIABLES */
+        /* DARK MODE */
         [data-theme="dark"] {
-            --bg-color: #121212;
             --chat-bg: #1e1e1e;
             --text-main: #e0e0e0;
-            --text-sub: #aaaaaa;
             --bot-bubble: #2c2c2c;
-            --user-bubble: #3f51b5; /* Slightly lighter blue for dark mode contrast */
-            --shadow: rgba(0,0,0,0.4);
+            --user-bubble: #3f51b5;
         }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            transition: background-color 0.3s;
+            background-image: radial-gradient(#dee2e6 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
         /* =========================================
-           CHAT CONTAINER
+           CHAT WIDGET (Bottom Right)
            ========================================= */
         .chat-wrapper {
-            width: 100%;
-            max-width: 400px;
-            height: 90vh;
-            max-height: 700px;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 380px;
+            height: 600px;
             background-color: var(--chat-bg);
             border-radius: 20px;
-            box-shadow: 0 10px 30px var(--shadow);
+            box-shadow: 0 5px 40px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
-            transition: background-color 0.3s, box-shadow 0.3s;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* Fullscreen on small mobile phones */
-        @media (max-width: 450px) {
+        /* RESPONSIVE: Full screen on mobile */
+        @media (max-width: 480px) {
             .chat-wrapper {
-                height: 100vh;
-                max-height: 100vh;
+                bottom: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
                 border-radius: 0;
             }
         }
@@ -78,10 +73,9 @@
             color: white;
             padding: 15px 20px;
             display: flex;
-            justify-content: space-between; /* Spreads title and toggle */
+            justify-content: space-between; 
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .header-title {
@@ -100,12 +94,9 @@
             font-size: 1.2rem;
             padding: 5px;
             border-radius: 50%;
-            transition: background 0.2s;
         }
 
-        .theme-toggle:hover {
-            background-color: rgba(255,255,255,0.2);
-        }
+        .theme-toggle:hover { background-color: rgba(255,255,255,0.2); }
 
         /* =========================================
            CHAT AREA
@@ -126,14 +117,13 @@
             border-radius: 18px;
             font-size: 0.95rem;
             line-height: 1.5;
-            position: relative;
             word-wrap: break-word;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.9) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .bot {
@@ -151,16 +141,9 @@
         }
 
         /* Formatting Helpers */
-        .message strong {
-            font-weight: 700;
-        }
-        .message ul {
-            margin: 5px 0 5px 20px;
-            padding: 0;
-        }
-        .message li {
-            margin-bottom: 4px;
-        }
+        .message strong { font-weight: 700; }
+        .message ul { margin: 5px 0 5px 20px; padding: 0; }
+        .message li { margin-bottom: 4px; }
 
         /* =========================================
            CONTROLS
@@ -172,9 +155,9 @@
             overflow-x: auto;
             background-color: var(--chat-bg);
             border-top: 1px solid rgba(0,0,0,0.05);
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none; 
         }
-        .quick-actions::-webkit-scrollbar { display: none; } /* Chrome */
+        .quick-actions::-webkit-scrollbar { display: none; }
 
         .pill {
             background: transparent;
@@ -188,20 +171,10 @@
             transition: all 0.2s;
         }
 
-        .pill:hover {
-            background-color: var(--primary);
-            color: white;
-        }
+        .pill:hover { background-color: var(--primary); color: white; }
 
-        /* Dark mode adjustments for pills */
-        [data-theme="dark"] .pill {
-            border-color: #64b5f6;
-            color: #64b5f6;
-        }
-        [data-theme="dark"] .pill:hover {
-            background-color: #64b5f6;
-            color: #121212;
-        }
+        [data-theme="dark"] .pill { border-color: #64b5f6; color: #64b5f6; }
+        [data-theme="dark"] .pill:hover { background-color: #64b5f6; color: #121212; }
 
         .input-box {
             padding: 15px;
@@ -219,12 +192,9 @@
             outline: none;
             background-color: var(--bg-color);
             color: var(--text-main);
-            transition: border-color 0.2s;
         }
 
-        input:focus {
-            border-color: var(--primary);
-        }
+        input:focus { border-color: var(--primary); }
 
         .send-btn {
             background-color: var(--primary);
@@ -237,15 +207,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: transform 0.2s;
         }
 
-        .send-btn:hover {
-            transform: scale(1.1);
-        }
+        .send-btn:hover { transform: scale(1.05); }
 
         /* =========================================
-           TYPING INDICATOR (ANIMATION)
+           LOADER
            ========================================= */
         .typing-indicator {
             display: none;
@@ -258,26 +225,15 @@
             width: fit-content;
         }
 
-        .dots {
-            display: flex;
-            gap: 4px;
-        }
-
+        .dots { display: flex; gap: 4px; }
         .dot {
-            width: 6px;
-            height: 6px;
-            background-color: #888;
-            border-radius: 50%;
+            width: 6px; height: 6px; background-color: #888; border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
-
         .dot:nth-child(1) { animation-delay: -0.32s; }
         .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
     </style>
 </head>
 <body>
@@ -286,11 +242,9 @@
     <div class="header">
         <div class="header-title">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 0 6-1 9-1 3 0 6 0 9 1v-5"/></svg>
-            AWH Bot
+            AWH Assistant
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
-            🌙
-        </button>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
     </div>
 
     <div class="messages-area" id="chatBox">
@@ -305,11 +259,7 @@
     </div>
 
     <div class="typing-indicator" id="loader">
-        <div class="dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
     </div>
 
     <div class="quick-actions">
@@ -320,7 +270,7 @@
     </div>
 
     <div class="input-box">
-        <input type="text" id="userInput" placeholder="Type your query..." onkeypress="handleEnter(event)">
+        <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
         <button class="send-btn" onclick="sendMessage()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>
@@ -329,7 +279,7 @@
 
 <script>
     // ===============================================
-    // ⚠️ CONFIGURATION: PASTE API KEY HERE
+    // YOUR API KEY IS CONFIGURED BELOW
     // ===============================================
     const API_KEY = "AIzaSyDKbOtWve9E0G-fws_B-jg5N7I-C5u0CDI"; 
     // ===============================================
@@ -338,40 +288,22 @@
     const userInput = document.getElementById('userInput');
     const loader = document.getElementById('loader');
 
-    // 1. HARDCODED KNOWLEDGE BASE
+    // 1. HARDCODED DATA
     const collegeData = {
         name: "AWH Engineering College",
         
-        departments: `<strong>Our Departments:</strong>
-        <ul>
-            <li>Computer Science (CSE)</li>
-            <li>AI & Data Science (AI&DS)</li>
-            <li>Electronics (ECE)</li>
-            <li>Electrical (EEE)</li>
-            <li>Mechanical (ME)</li>
-            <li>Civil (CE)</li>
-            <li>MCA</li>
-        </ul>`,
+        departments: `<strong>Our Departments:</strong><ul><li>Computer Science (CSE)</li><li>AI & Data Science (AI&DS)</li><li>Electronics (ECE)</li><li>Electrical (EEE)</li><li>Mechanical (ME)</li><li>Civil (CE)</li><li>MCA</li></ul>`,
         
-        courses: `<strong>Courses Offered:</strong><br>
-        We offer B.Tech programs affiliated with KTU in all major engineering branches.<br><br>
-        <strong>Postgraduate Options:</strong><br>
-        • MCA<br>
-        • M.Tech in Structural Eng, CSE, and VLSI Design.`,
+        courses: `<strong>Courses Offered:</strong><br>We offer B.Tech programs affiliated with KTU in all major engineering branches.<br><br><strong>Postgraduate:</strong><br>• MCA<br>• M.Tech in Structural Eng, CSE, and VLSI Design.`,
         
-        events: `<strong>🎉 Saaya (Cultural Fest):</strong><br>
-        Our massive annual arts festival! It's a kaleidoscope of music, dance, and fine arts where students showcase their creative side.<br><br>
-        <strong>🤖 ATHMA (Technical Fest):</strong><br>
-        The flagship tech fest! Features the 'ATHMATHON' hackathon, robotics wars, and coding challenges. It's where innovation happens.`,
+        events: `<strong>🎉 Saaya (Cultural Fest):</strong><br>Our massive annual arts festival! It's a kaleidoscope of music, dance, and fine arts where students showcase their creative side.<br><br><strong>🤖 ATHMA (Technical Fest):</strong><br>The flagship tech fest! Features the 'ATHMATHON' hackathon, robotics wars, and coding challenges.`,
         
-        location: `<strong>Find Us Here:</strong><br>
-        📍 Kuttikkattoor, Kozhikode, Kerala - 673008.<br>
-        (We are about 12km from the main Kozhikode city).`,
+        location: `<strong>Find Us Here:</strong><br>📍 Kuttikkattoor, Kozhikode, Kerala - 673008.<br>(We are about 12km from the main Kozhikode city).`,
 
         contact: `📞 0495-2352552<br>📧 info@awhengg.org`
     };
 
-    // 2. THEME TOGGLE LOGIC
+    // 2. THEME LOGIC
     let isDark = false;
     function toggleTheme() {
         isDark = !isDark;
@@ -380,42 +312,33 @@
     }
 
     // 3. CHAT LOGIC
-    function handleEnter(e) {
-        if (e.key === 'Enter') sendMessage();
-    }
-
-    function sendQuick(text) {
-        userInput.value = text;
-        sendMessage();
-    }
+    function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
+    function sendQuick(text) { userInput.value = text; sendMessage(); }
 
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
-        // Add User Message
         addMessage(text, 'user');
         userInput.value = '';
 
-        // Check Hardcoded Data First
+        // Check Hardcoded First
         const lower = text.toLowerCase();
         let reply = null;
 
         if (lower.includes('department') || lower.includes('branch')) reply = collegeData.departments;
         else if (lower.includes('course') || lower.includes('b.tech') || lower.includes('m.tech')) reply = collegeData.courses;
         else if (lower.includes('event') || lower.includes('saaya') || lower.includes('athma')) reply = collegeData.events;
-        else if (lower.includes('location') || lower.includes('where') || lower.includes('address')) reply = collegeData.location;
+        else if (lower.includes('location') || lower.includes('where')) reply = collegeData.location;
         else if (lower.includes('contact') || lower.includes('phone') || lower.includes('email')) reply = collegeData.contact;
+        // MANUAL HELLO OVERRIDE (Failsafe)
+        else if (lower === 'hello' || lower === 'hi') reply = "Hello! 👋 How can I help you with AWH College today?";
 
         if (reply) {
-            // Simulate brief "thinking" for natural feel
             showLoader(true);
-            setTimeout(() => {
-                showLoader(false);
-                addMessage(reply, 'bot');
-            }, 600);
+            setTimeout(() => { showLoader(false); addMessage(reply, 'bot'); }, 600);
         } else {
-            // Use AI
+            // Use API
             showLoader(true);
             try {
                 const aiReply = await fetchGemini(text);
@@ -423,12 +346,12 @@
                 addMessage(parseMarkdown(aiReply), 'bot');
             } catch (err) {
                 showLoader(false);
-                addMessage("⚠️ Network error. Please check your connection or API Key.", 'bot');
+                addMessage("⚠️ I'm having trouble connecting. Please check your Internet connection.", 'bot');
+                console.error(err);
             }
         }
     }
 
-    // 4. DISPLAY FUNCTIONS
     function addMessage(html, type) {
         const div = document.createElement('div');
         div.className = `message ${type}`;
@@ -442,33 +365,16 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Simple Markdown Parser (Bold only for safety)
     function parseMarkdown(text) {
-        // Convert **bold** to <b>bold</b>
         let parsed = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        // Convert * bullet to bullet point
         parsed = parsed.replace(/^\* /gm, '• ');
         return parsed;
     }
 
-    // 5. API CONNECTION
     async function fetchGemini(prompt) {
-        if (!API_KEY || API_KEY.includes("PASTE")) return "Please set up your API Key in the code file!";
-
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
         const payload = {
-            contents: [{
-                parts: [{
-                    text: `You are an enthusiastic senior student volunteer at AWH Engineering College. 
-                    User: "${prompt}"
-                    
-                    Guidelines:
-                    1. Be friendly, helpful, and use emojis occasionally.
-                    2. If asked about facts you don't know (like specific fees or exam dates), politely guide them to the college office.
-                    3. Keep answers short (under 50 words) unless asked to elaborate.
-                    4. Never mention you are an AI; pretend to be a helpful student.`
-                }]
-            }]
+            contents: [{ parts: [{ text: `You are a helpful student volunteer at AWH Engineering College. User: "${prompt}". Keep answers polite, short, and use emojis.` }] }]
         };
 
         const res = await fetch(url, {
@@ -477,8 +383,10 @@
             body: JSON.stringify(payload)
         });
         
+        if (!res.ok) throw new Error("API Error");
+
         const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I didn't catch that.";
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I didn't understand.";
     }
 </script>
 
