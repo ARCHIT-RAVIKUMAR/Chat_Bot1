@@ -80,8 +80,29 @@
         .message a { color: var(--primary); text-decoration: none; font-weight: 600; border-bottom: 1px dotted var(--primary); }
         [data-theme="dark"] .message a { color: #64b5f6; border-color: #64b5f6; }
         
-        /* IMAGE STYLING */
-        .chat-image { width: 100%; height: auto; border-radius: 10px; margin-top: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        /* === CAROUSEL (SLIDESHOW) STYLES === */
+        .carousel {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+            width: 100%;
+        }
+        /* Hide scrollbar for cleaner look */
+        .carousel::-webkit-scrollbar { display: none; }
+        
+        .carousel img {
+            width: 200px; /* Fixed width for uniformity */
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            flex-shrink: 0; /* Prevent images from squishing */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .carousel img:hover { transform: scale(1.05); }
+
 
         /* INPUT AREA */
         .quick-actions { padding: 10px 15px; display: flex; gap: 8px; overflow-x: auto; background-color: var(--chat-bg); border-top: 1px solid rgba(0,0,0,0.05); scrollbar-width: none; }
@@ -143,7 +164,7 @@
         <button class="pill" onclick="sendQuick('Departments')">Departments</button>
         <button class="pill" onclick="sendQuick('Events')">Events</button>
         <button class="pill" onclick="sendQuick('Location')">Location</button>
-        <button class="pill" onclick="sendQuick('Show me a photo')">📷 Photos</button>
+        <button class="pill" onclick="sendQuick('Gallery')">📸 Gallery</button>
     </div>
 
     <div class="input-box">
@@ -183,26 +204,17 @@
         }
     }
 
-    // 2. HARDCODED KNOWLEDGE (TEXT ONLY - NO SPECIFIC IMAGES)
+    // 2. HARDCODED KNOWLEDGE
     const collegeData = {
         name: "AWH Engineering College",
         departments: `<strong>Our Departments:</strong><ul><li>Computer Science (CSE)</li><li>AI & Data Science (AI&DS)</li><li>Electronics (ECE)</li><li>Electrical (EEE)</li><li>Mechanical (ME)</li><li>Civil (CE)</li><li>MCA</li></ul>`,
         courses: `<strong>Academic Programs:</strong><br>• B.Tech (KTU Affiliated)<br>• M.Tech (Structural, CSE, VLSI)<br>• MCA`,
-        
-        // UPDATED: Text only + Dates
         events: `<strong>🎉 Saaya Cultural Fest:</strong><br>📅 February 5 & 6<br>A celebration of arts & music!<br><br><strong>🤖 ATHMA Technical Fest:</strong><br>📅 February 7<br>The flagship tech fest with hackathons & robotics.`,
-        
-        // LOCATION
         location: `<strong>Find Us Here:</strong><br>📍 Kuttikkattoor, Kozhikode, Kerala.<br><a href="https://www.google.com/maps/search/?api=1&query=AWH+Engineering+College" target="_blank">View on Google Maps 🗺️</a>`,
-        
         contact: `<strong>Contact Us:</strong><br>📞 <a href="tel:04952352552">0495-2352552</a><br>📧 <a href="mailto:info@awhengg.org">info@awhengg.org</a>`,
-        
         admissions: `<strong>Admissions:</strong><br>We offer B.Tech admission based on KEAM rank and Management Quota. <br>Please visit the college office for seat availability.`,
-        
         placements: `<strong>Placements:</strong><br>Our Placement Cell is very active! Top recruiters include Infosys, TCS, and UST Global.`,
-        
         facilities: `<strong>Campus Facilities:</strong><br>• 🚍 Bus Service<br>• 🏠 Hostels<br>• 📚 Library<br>• 📶 Wi-Fi`,
-        
         principal: `Our Principal leads the academic vision of AWH Engineering College with a focus on excellence and innovation.`
     };
 
@@ -246,13 +258,19 @@
         else if (lower.includes('hostel') || lower.includes('bus') || lower.includes('facility') || lower.includes('library')) reply = collegeData.facilities;
         else if (lower.includes('principal')) reply = collegeData.principal;
 
-        // --- RANDOM PHOTO LOGIC (Uses clg1.jpeg to clg5.jpeg RANDOMLY) ---
+        // --- GALLERY / SLIDESHOW LOGIC ---
         else if (lower.includes('photo') || lower.includes('image') || lower.includes('pic') || lower.includes('gallery')) {
-            // Pick a random number between 1 and 5
-            const randomNum = Math.floor(Math.random() * 5) + 1;
-            // CORRECTED TO .jpeg
-            const randomImg = 'clg' + randomNum + '.jpeg';
-            reply = `Here is a glimpse of our campus! 📸<br><img src="${randomImg}" class="chat-image" onerror="this.style.display='none'">`;
+            // Creates a scrollable strip of ALL 5 images
+            reply = `
+                <strong>Campus Gallery 📸</strong><br>(Swipe to see more)<br>
+                <div class="carousel">
+                    <img src="clg1.jpeg" onclick="window.open(this.src)" alt="College 1">
+                    <img src="clg2.jpeg" onclick="window.open(this.src)" alt="College 2">
+                    <img src="clg3.jpeg" onclick="window.open(this.src)" alt="College 3">
+                    <img src="clg4.jpeg" onclick="window.open(this.src)" alt="College 4">
+                    <img src="clg5.jpeg" onclick="window.open(this.src)" alt="College 5">
+                </div>
+            `;
         }
 
         // --- GREETINGS ---
@@ -261,7 +279,7 @@
         else if (lower.includes('good morning')) reply = "Good morning! ☀️";
         else if (lower.includes('thank')) reply = "You're welcome! 😊";
         else if (lower.includes('bye')) reply = "Goodbye! Have a nice day! 👋";
-        else if (lower.includes('help') || lower.includes('menu')) reply = "Try asking about: <strong>Courses, Events, Hostels</strong>, or say <strong>Show me a photo</strong>!";
+        else if (lower.includes('help') || lower.includes('menu')) reply = "Try asking about: <strong>Courses, Events, Hostels</strong>, or tap <strong>📸 Gallery</strong>!";
 
         if (reply) {
             // Instant Reply
